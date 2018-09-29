@@ -38,6 +38,20 @@ module = @
             ret_band.prob_cap = band_a.prob_cap * band_b.prob_cap
           ret.merge_sorted_band_list sorted_band_list
         
+      when 'sub'
+        ret.value = a.value - b.value
+        
+        band_hash = {}
+        sorted_band_list = []
+        for band_a in a.band_list
+          sorted_band_list.clear() # -1 alloc
+          for band_b in b.band_list
+            sorted_band_list.push ret_band = new Band
+            ret_band.a = band_a.a + band_b.b
+            ret_band.b = band_a.b + band_b.a
+            ret_band.prob_cap = band_a.prob_cap * band_b.prob_cap
+          ret.merge_sorted_band_list sorted_band_list
+        
       else
         throw new Error "Unknown bin_op #{expr.name}"
   else if expr instanceof Variable

@@ -41,4 +41,17 @@ describe 'operation_value_evaluator section', ()->
     
     it 'TODO multiband'
   
+  describe 'sub', ()->
+    it '1 - 2 = -1', ()->
+      assert val(-1).value.eq mod.eval op.sub val(1), val(2)
+      return
+    
+    it '1±0.3 - 2±0.4 = -1±0.7', ()->
+      assert val(-1, 0.7).value.eq mod.eval op.sub val(1, 0.3), val(2, 0.4)
+    
+    it '1[-0.1+0.2] - 2[-0.3+0.5] = -1[-0.6+0.5]', ()->
+      assert val(-1, 0.6, 0.5).value.eq mod.eval op.sub val(1, 0.1, 0.2), val(2, 0.3, 0.5)
+    
+    it 'TODO multiband'
+  
   describe 'throws', ()->
