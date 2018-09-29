@@ -1,3 +1,4 @@
+module = @
 {
   un_op
   bin_op
@@ -9,7 +10,6 @@
   Measure_value
 } = require './measure_value'
 @eval = (expr)->
-  ret = new Measure_value
   # TODO
   if expr instanceof un_op
     ret = new Measure_value
