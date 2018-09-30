@@ -25,8 +25,8 @@ class @Value
   value     : 0 # precise
   # zero-band
   # true means that it includes this range
-  zb_pos    : false
   zb_neg    : false
+  zb_pos    : false
   
   band_list : [] # array<Band>
   constructor:()->
@@ -40,7 +40,7 @@ class @Value
         ret += "±#{a}"
       else
         ret += "[-#{a}+#{b}]"
-    if @zb_pos and @zb_neg
+    if @zb_neg and @zb_pos
       ret += '{±}'
     else if @zb_pos
       ret += '{+}'
@@ -52,8 +52,8 @@ class @Value
   weak_eq : (t)->
     unless isNaN(@value) and isNaN t.value
       return false if @value  != t.value
-    return false if @zb_pos != t.zb_pos
     return false if @zb_neg != t.zb_neg
+    return false if @zb_pos != t.zb_pos
     return false if @band_list.length != t.band_list.length
     for band,idx in @band_list
       check_band = t.band_list[idx]
@@ -63,8 +63,8 @@ class @Value
   eq : (t)->
     return false if !isFinite @.value
     return false if @value  != t.value
-    return false if @zb_pos != t.zb_pos
     return false if @zb_neg != t.zb_neg
+    return false if @zb_pos != t.zb_pos
     return false if @band_list.length != t.band_list.length
     for band,idx in @band_list
       check_band = t.band_list[idx]
