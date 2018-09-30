@@ -15,7 +15,7 @@ op_decl = (name)->
     ret.pos = pos
     ret
 
-for v in 'neg rep exp ln abs sqrt sin cos tan asin acos atan'.split /\s+/g
+for v in 'neg abs inv exp ln sqrt sin cos tan asin acos atan'.split /\s+/g
   op_decl v
 
 op_decl = (name)->
@@ -26,5 +26,12 @@ op_decl = (name)->
     ret.b = b
     ret
 
-for v in 'add sub mul div pow log atan2'.split /\s+/g
+for v in 'add mul pow log atan2'.split /\s+/g
   op_decl v
+
+
+@sub = (a,b)->
+  module.add a, module.neg b
+
+@div = (a,b)->
+  module.mul a, module.inv b

@@ -30,6 +30,16 @@ az = val(0)
 az.value.zb_neg = true
 az.value.zb_pos = true
 
+anan = val(NaN, Infinity, Infinity)
+pnan = val(NaN, 0, Infinity)
+nnan = val(NaN, Infinity, 0)
+
+pnan_inc = val(NaN, 0, Infinity)
+pnan_inc.zb_neg = true
+
+nnan_inc = val(NaN, Infinity, 0)
+nnan_inc.zb_pos = true
+
 describe 'operation_value_evaluator section', ()->
   it 'value pass', ()->
     assert val(1).value.weak_eq mod.eval val 1
@@ -130,8 +140,73 @@ describe 'operation_value_evaluator section', ()->
       it '0±1 * 0±1 = 0±1', ()->
         commutative_test val(0, 1), val(0, 1), val(0, 1)
       # NaN
-      it '1 * NaN = NaN', ()->
-        commutative_test val(1), val(NaN), val(NaN, Infinity, Infinity)
+      # anan
+      it '1 * ±NaN = ±NaN', ()->
+        commutative_test val(1), anan, anan
+      
+      it '-1 * ±NaN = ±NaN', ()->
+        commutative_test val(-1), anan, anan
+      
+      # 1 * NaN
+      it '1 * +NaN = +NaN', ()->
+        commutative_test val(1), pnan, pnan
+      
+      it '1 * -NaN = -NaN', ()->
+        commutative_test val(1), nnan, nnan
+      
+      it '1 * +NaN{-} = +NaN{-}', ()->
+        commutative_test val(1), pnan_inc, pnan_inc
+      
+      it '1 * -NaN{+} = -NaN{+}', ()->
+        commutative_test val(1), nnan_inc, nnan_inc
+      
+      # -1 * NaN
+      it '-1 * +NaN = +NaN', ()->
+        commutative_test val(-1), pnan, nnan
+      
+      it '-1 * -NaN = -NaN', ()->
+        commutative_test val(-1), nnan, pnan
+      
+      it '-1 * +NaN{-} = -NaN{+}', ()->
+        commutative_test val(-1), pnan_inc, nnan_inc
+      
+      it '-1 * -NaN{+} = +NaN{-}', ()->
+        commutative_test val(-1), nnan_inc, pnan_inc
+      
+      # cross NaN
+      # anan + any = anan
+      it '±NaN * ±NaN = ±NaN', ()->
+        commutative_test anan, anan, anan
+      
+      it '±NaN * +NaN = ±NaN', ()->
+        commutative_test anan, pnan, anan
+      
+      it '±NaN * -NaN = ±NaN', ()->
+        commutative_test anan, nnan, anan
+      
+      it '±NaN * +NaN = ±NaN', ()->
+        commutative_test anan, pnan_inc, anan
+      
+      it '±NaN * -NaN = ±NaN', ()->
+        commutative_test anan, nnan_inc, anan
+      
+      # single 
+      it '±NaN * ±NaN = ±NaN', ()->
+        commutative_test anan, anan, anan
+      
+      it '±NaN * +NaN = ±NaN', ()->
+        commutative_test anan, pnan, anan
+      
+      it '±NaN * -NaN = ±NaN', ()->
+        commutative_test anan, nnan, anan
+      
+      it '±NaN * +NaN = ±NaN', ()->
+        commutative_test anan, pnan_inc, anan
+      
+      it '±NaN * -NaN = ±NaN', ()->
+        commutative_test anan, nnan_inc, anan
+      
+      # NaN Infinity
       
       # zb zeros
       # tz
