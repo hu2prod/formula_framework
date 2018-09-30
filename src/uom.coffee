@@ -1,5 +1,4 @@
 # UOM == Unit of measurement
-# Polynom == nom_list (Хотя по-честному nomen см. https://en.wikipedia.org/wiki/Polynomial)
 class @UOM_pow
   canonical_value : ''
   original_value  : ''
