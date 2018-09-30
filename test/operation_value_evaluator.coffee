@@ -113,6 +113,23 @@ describe 'operation_value_evaluator section', ()->
         it '2±1 / 2 = 1±0.5', ()->
           assert val(1, 0.5).value.weak_eq mod.eval op.div val(2, 1), val(2)
         
+        # a/b a cross zero
+        it '2±2 / 2 = 1±1', ()->
+          assert val(1, 1).value.weak_eq mod.eval op.div val(2, 2), val(2)
+        
+        # ###################################################################################################
+        #    band touch
+        # ###################################################################################################
+        # pz.3
+        it '0 / 1±1 = 0', ()->
+          assert val(0, 0, 0).value.weak_eq mod.eval op.div val(0), val(1, 1)
+        # pz.4
+        it '1 / 1±1 = 1[-0.5+Infinity]', ()->
+          assert val(1, 0.5, Infinity).value.weak_eq mod.eval op.div val(1), val(1, 1)
+        # pz.5
+        it '-1 / 1±1 = -1[-Infinity+0.5]', ()->
+          assert val(-1, Infinity, 0.5).value.weak_eq mod.eval op.div val(-1), val(1, 1)
+        
         # it '1 / 0 = Infinity', ()->
         #   assert val(Infinity).value.weak_eq mod.eval op.div val(1), val(0)
         # 

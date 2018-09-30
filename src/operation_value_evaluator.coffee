@@ -11,19 +11,12 @@ module = @
   Band
 } = require './value'
 
-# MAYBE TODO crit value list
+# TODO inline this
 band_value_list = (t, band)->
   ret = [
     value_min = t.value - band.a
     value_max = t.value + band.b
   ]
-  ret
-band_value_list_with_0 = (t, band)->
-  ret = [
-    value_min = t.value - band.a
-    value_max = t.value + band.b
-  ]
-  ret.push 0 if value_min*value_max < 0
   ret
 
 band0_list = [new Band]
@@ -140,21 +133,21 @@ a + b = 0{±} # NOT ok, must be 0 because exactly equal values
         pos zero
         [pz.1] +0/+0 -> {0, +Infinity}
         [pz.2] -0/+0 -> {0, -Infinity}
-        [pz.3]  0/+0 -> {0, +Infinity}
+        [pz.3]  0/+0 -> {0}
         [pz.4] +1/+0 -> {0, +Infinity}
         [pz.5] -1/+0 -> {0, -Infinity}
         
         neg zero
         [nz.1] +0/-0 -> {0, -Infinity}
         [nz.2] -0/-0 -> {0, +Infinity}
-        [nz.3]  0/-0 -> {0, -Infinity}
+        [nz.3]  0/-0 -> {0}
         [nz.4] +1/-0 -> {0, -Infinity}
         [nz.5] -1/-0 -> {0, +Infinity}
         
         NaN = {-Infinity, 0, Infinity}
-        [nan.1]  * /±0 -> NaN
-        [nan.2]  * / 0 -> NaN
-        [nan.3] ±0 /*0 -> NaN
+        [nan.1]  * / ±0 -> NaN
+        [nan.2]  * /  0 -> NaN
+        [nan.3] ±0 / *0 -> NaN
         
         ###
         
@@ -167,13 +160,17 @@ a + b = 0{±} # NOT ok, must be 0 because exactly equal values
             if b.zb_pos # case [pz.1,2,3]
               if a.zb_neg # case [pz.2]
                 ret.value = -Infinity
-              else
+              else if a.zb_pos # case [pz.1]
                 ret.value = Infinity
+              else # case [pz.3]
+                ret.value = 0
             else # case [nz.1,2,3]
               if a.zb_neg # case [nz.2]
                 ret.value = Infinity
-              else
+              else if a.zb_pos # case [nz.1]
                 ret.value = -Infinity
+              else # case [nz.3]
+                ret.value = 0
           else # case [pz.4,5] [nz.4,5]
             if b.zb_pos # case [pz.4,5]
               ret.value = a.value*Infinity
@@ -198,22 +195,87 @@ a + b = 0{±} # NOT ok, must be 0 because exactly equal values
               # `loop://`
               for a_val in a_list
                 for b_val in b_list
+                  continue if b_val == 0 # will handle separate
                   res = a_val/b_val
                   if isNaN res
+                    # only *Infinity / *Infinity
                     min = -Infinity
                     max = Infinity
                     # `break loop`
                   min = Math.min min, res
                   max = Math.max max, res
               
+              [a_min, a_max] = a_list
               [b_min, b_max] = b_list
-              if b_min < 0 and b_max > 0
-                b_min = -Infinity
-                b_max = Infinity
-              else if b_min == 0
-                'TODO'
-              else if b_max == 0
-                'TODO'
+              a_cross_zero = (a_min <  0) and (a_max >  0)
+              b_cross_zero = (b_min <  0) and (b_max >  0)
+              a_touch_zero = (a_min == 0) or  (a_max == 0)
+              b_touch_zero = (b_min == 0) or  (b_max == 0)
+              
+              ###
+              COPYPASTE для лучшей читабельности
+              -0 не пройдет, мы сами определяем zero band
+              Откуда берется
+              
+              /-0 ~= *-Infinity
+              /+0 ~= *+Infinity
+              +0 -0 в числителе на самом деле +epsilon -epsilon
+              pos zero
+              [pz.1] +0/+0 -> {0, +Infinity}
+              [pz.2] -0/+0 -> {0, -Infinity}
+              [pz.3]  0/+0 -> {0}
+              [pz.4] +1/+0 -> {0, +Infinity}
+              [pz.5] -1/+0 -> {0, -Infinity}
+              
+              neg zero
+              [nz.1] +0/-0 -> {0, -Infinity}
+              [nz.2] -0/-0 -> {0, +Infinity}
+              [nz.3]  0/-0 -> {0}
+              [nz.4] +1/-0 -> {0, -Infinity}
+              [nz.5] -1/-0 -> {0, +Infinity}
+              
+              NaN = {-Infinity, 0, Infinity}
+              [nan.1]  * / ±0 -> NaN
+              [nan.2]  * /  0 -> NaN
+              [nan.3] ±0 / *0 -> NaN
+              
+              ###
+              
+              if b_cross_zero # case b == ±0 case [nan.1] and part of [nan.3]
+                min = -Infinity
+                max = Infinity
+              else if b_touch_zero # case b == +0 or b == -0
+                if a_cross_zero # case [nan.3]
+                  min = -Infinity
+                  max = Infinity
+                else if a_touch_zero # case [pz.1,2,3] [nz.1,2,3]
+                  if a_min == a_max == 0 # case [pz.3] [nz.3]
+                    min = ret.value
+                    max = ret.value
+                  else if b_min == 0 # b == +0  case [pz.1,2]
+                    if a_min == 0 # case [pz.1]
+                      max = Infinity
+                    else # case [pz.2]
+                      min = -Infinity
+                  else # b == -0 case [nz.1,2]
+                    if a_min == 0 # case [nz.1]
+                      min = -Infinity
+                    else # case [nz.2]
+                      max = Infinity
+                else # case [pz.4,5] [nz.4,5]
+                  if b_min == 0 # b == +0  case [pz.4,5]
+                    if a_min > 0 # case [pz.4]
+                      max = Infinity
+                    else # case [pz.5]
+                      min = -Infinity
+                  else # b == -0 case [nz.4,5]
+                    if a_min > 0 # case [nz.4]
+                      min = -Infinity
+                    else # case [nz.5]
+                      max = Infinity
+              else if b_min == b_max == 0 # case [nan.2]
+                min = -Infinity
+                max = Infinity
               
               # Infinity - Infinity -> NaN workaround
               ret_band.a = if ret.value == min then 0 else ret.value - min

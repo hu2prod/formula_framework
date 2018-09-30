@@ -15,7 +15,7 @@ op_decl = (name)->
     ret.pos = pos
     ret
 
-for v in 'neg rep exp ln sin cos tan asin acos atan'.split /\s+/g
+for v in 'neg rep exp ln abs sqrt sin cos tan asin acos atan'.split /\s+/g
   op_decl v
 
 op_decl = (name)->
