@@ -24,34 +24,72 @@ describe 'operation_value_evaluator section', ()->
     assert val(1).value.eq mod.eval val 1
     return
   
-  describe 'add', ()->
-    it '1 + 2 = 3', ()->
-      assert val(3).value.eq mod.eval op.add val(1), val(2)
-      return
+  describe 'un_op', ()->
+    describe 'neg', ()->
+      it '-(1) = 1', ()->
+        assert val(-1).value.eq mod.eval op.neg val(1)
+        return
+      
+      it '-(1±0.1) = -1±0.1', ()->
+        assert val(-1, 0.1).value.eq mod.eval op.neg val(1, 0.1)
+      
+      it '-(1[-0.1+0.2]) = -1[-0.2+0.1]', ()->
+        assert val(-1, 0.2, 0.1).value.eq mod.eval op.neg val(1, 0.1, 0.2)
+      
+      it 'TODO multiband'
     
-    it '1±0.3 + 2±0.4 = 3±0.7', ()->
-      assert val(3, 0.7).value.eq mod.eval op.add val(1, 0.3), val(2, 0.4)
+    describe 'throws', ()->
+      it 'bad op', ()->
+        assert.throws ()->
+          t = op.neg val(1)
+          t.name = 'bad op'
+          mod.eval t
+        return
+      
+  describe 'bin_op', ()->
+    describe 'add', ()->
+      it '1 + 2 = 3', ()->
+        assert val(3).value.eq mod.eval op.add val(1), val(2)
+        return
+      
+      it '1±0.3 + 2±0.4 = 3±0.7', ()->
+        assert val(3, 0.7).value.eq mod.eval op.add val(1, 0.3), val(2, 0.4)
+      
+      # 0.6000000000000001
+      # it '1[-0.1+0.2] + 2[-0.3+0.4] = 3[-0.4+0.6]', ()->
+      #   assert val(3, 0.4, 0.6).value.eq mod.eval op.add val(1, 0.1, 0.2), val(2, 0.3, 0.4)
+      
+      it '1[-0.1+0.2] + 2[-0.3+0.5] = 3[-0.4+0.7]', ()->
+        assert val(3, 0.4, 0.7).value.eq mod.eval op.add val(1, 0.1, 0.2), val(2, 0.3, 0.5)
+      
+      it 'TODO multiband'
     
-    # 0.6000000000000001
-    # it '1[-0.1+0.2] + 2[-0.3+0.4] = 3[-0.4+0.6]', ()->
-    #   assert val(3, 0.4, 0.6).value.eq mod.eval op.add val(1, 0.1, 0.2), val(2, 0.3, 0.4)
+    describe 'sub', ()->
+      it '1 - 2 = -1', ()->
+        assert val(-1).value.eq mod.eval op.sub val(1), val(2)
+        return
+      
+      it '1±0.3 - 2±0.4 = -1±0.7', ()->
+        assert val(-1, 0.7).value.eq mod.eval op.sub val(1, 0.3), val(2, 0.4)
+      
+      it '1[-0.1+0.2] - 2[-0.3+0.5] = -1[-0.6+0.5]', ()->
+        assert val(-1, 0.6, 0.5).value.eq mod.eval op.sub val(1, 0.1, 0.2), val(2, 0.3, 0.5)
+      
+      it 'TODO multiband'
     
-    it '1[-0.1+0.2] + 2[-0.3+0.5] = 3[-0.4+0.7]', ()->
-      assert val(3, 0.4, 0.7).value.eq mod.eval op.add val(1, 0.1, 0.2), val(2, 0.3, 0.5)
-    
-    it 'TODO multiband'
-  
-  describe 'sub', ()->
-    it '1 - 2 = -1', ()->
-      assert val(-1).value.eq mod.eval op.sub val(1), val(2)
-      return
-    
-    it '1±0.3 - 2±0.4 = -1±0.7', ()->
-      assert val(-1, 0.7).value.eq mod.eval op.sub val(1, 0.3), val(2, 0.4)
-    
-    it '1[-0.1+0.2] - 2[-0.3+0.5] = -1[-0.6+0.5]', ()->
-      assert val(-1, 0.6, 0.5).value.eq mod.eval op.sub val(1, 0.1, 0.2), val(2, 0.3, 0.5)
-    
-    it 'TODO multiband'
-  
+    describe 'throws', ()->
+      it 'bad op', ()->
+        assert.throws ()->
+          t = op.sub val(1), val(2)
+          t.name = 'bad op'
+          mod.eval t
+        return
   describe 'throws', ()->
+    describe 'bad stuff', ()->
+      # избыточно
+      it 'int',     ()-> assert.throws ()-> mod.eval 1
+      it 'string',  ()-> assert.throws ()-> mod.eval '1'
+      it 'bool',    ()-> assert.throws ()-> mod.eval true
+      it 'null',    ()-> assert.throws ()-> mod.eval null
+      it '{}',      ()-> assert.throws ()-> mod.eval {}
+  

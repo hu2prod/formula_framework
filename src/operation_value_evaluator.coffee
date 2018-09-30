@@ -14,9 +14,15 @@ module = @
   # TODO
   if expr instanceof un_op
     ret = new Value
+    pos = module.eval expr.pos
     switch expr.name
       when 'neg'
-        # TODO
+        ret.value = -pos.value
+        for band in pos.band_list
+          ret.band_list.push ret_band = new Band
+          ret_band.a = band.b
+          ret_band.b = band.a
+          ret_band.prob_cap = band.prob_cap
       else
         throw new Error "Unknown un_op #{expr.name}"
   else if expr instanceof bin_op

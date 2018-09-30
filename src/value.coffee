@@ -29,7 +29,7 @@ class @Value
   
   eq : (t)->
     return false if @value != t.value
-    return false if t.band_list.length != t.band_list.length
+    return false if @band_list.length != t.band_list.length
     for band,idx in @band_list
       check_band = t.band_list[idx]
       return false if !band.eq check_band
