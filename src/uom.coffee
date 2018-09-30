@@ -1,3 +1,4 @@
+module = @
 # UOM == Unit of measurement
 class @UOM_pow
   canonical_value : ''
@@ -31,7 +32,7 @@ class @UOM_pow
     return
   
   clone : ()->
-    ret = new UOM_pow
+    ret = new module.UOM_pow
     ret.set @
     ret
 
@@ -72,3 +73,7 @@ class @UOM
       @pow_list.push v.clone()
     return
   
+  # clone : ()->
+  #   ret = new module.UOM
+  #   ret.set @
+  #   ret

@@ -5,14 +5,29 @@ class @Band
   b : 0
   prob_cap : 1 # probability cap
   
+  weak_eq : (t)->
+    unless isNaN(@a) and isNaN t.a
+      return false if @a != t.a
+    unless isNaN(@b) and isNaN t.b
+      return false if @b != t.b
+    return false if @prob_cap != t.prob_cap
+    return true
+  
   eq : (t)->
+    return false if !isFinite @.a
+    return false if !isFinite @.b
     return false if @a != t.a
     return false if @b != t.b
     return false if @prob_cap != t.prob_cap
     return true
 
 class @Value
-  value : 0 # precise
+  value     : 0 # precise
+  # zero-band
+  # true means that it includes this range
+  zb_pos    : false
+  zb_neg    : false
+  
   band_list : [] # array<Band>
   constructor:()->
     @band_list = []
@@ -25,10 +40,31 @@ class @Value
         ret += "±#{a}"
       else
         ret += "[-#{a}+#{b}]"
+    if @zb_pos and @zb_neg
+      ret += '{±}'
+    else if @zb_pos
+      ret += '{+}'
+    else if @zb_neg
+      ret += '{-}'
+    
     ret
   
+  weak_eq : (t)->
+    unless isNaN(@value) and isNaN t.value
+      return false if @value  != t.value
+    return false if @zb_pos != t.zb_pos
+    return false if @zb_neg != t.zb_neg
+    return false if @band_list.length != t.band_list.length
+    for band,idx in @band_list
+      check_band = t.band_list[idx]
+      return false if !band.weak_eq check_band
+    return true
+  
   eq : (t)->
-    return false if @value != t.value
+    return false if !isFinite @.value
+    return false if @value  != t.value
+    return false if @zb_pos != t.zb_pos
+    return false if @zb_neg != t.zb_neg
     return false if @band_list.length != t.band_list.length
     for band,idx in @band_list
       check_band = t.band_list[idx]

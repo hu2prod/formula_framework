@@ -20,6 +20,8 @@ val = (name, pow=1)->
   pos.pow             = pow
   expr
 
+zero_uom = new UOM
+
 describe 'operation_uom_evaluator section', ()->
   it 'value pass', ()->
     assert val('kg').uom.eq mod.eval val 'kg'
@@ -65,6 +67,35 @@ describe 'operation_uom_evaluator section', ()->
           t = op.sub val('kg'), val('kg')
           t.name = 'bad op'
           mod.eval t
+        return
+    
+    describe 'mul', ()->
+      it 'kg * kg = kg**2', ()->
+        assert val('kg', 2).uom.eq mod.eval op.mul val('kg'), val('kg')
+        return
+      
+      it 'kg * kg**2 = kg**3', ()->
+        assert val('kg', 3).uom.eq mod.eval op.mul val('kg'), val('kg', 2)
+        return
+      
+      it 'kg * kg**-1 = 0', ()->
+        assert zero_uom.eq mod.eval op.mul val('kg'), val('kg',-1)
+        return
+      
+      it 'kg * meter = kg * meter', ()->
+        uom = new UOM
+        uom.pow_list.push pos = new UOM_pow
+        pos.canonical_value = 'kg'
+        pos.pow             = 1
+        uom.pow_list.push pos = new UOM_pow
+        pos.canonical_value = 'meter'
+        pos.pow             = 1
+        assert uom.eq mod.eval op.mul val('kg'), val('meter')
+        return
+      
+      it 'kg * (kg**-1 * meter) = meter', ()->
+        kg_m1_meter = op.mul val('kg', -1), val('meter')
+        assert val('meter').uom.eq mod.eval op.mul val('kg'), kg_m1_meter
         return
   
   describe 'throws', ()->
