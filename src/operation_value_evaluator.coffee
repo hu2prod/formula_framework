@@ -304,10 +304,104 @@ table_fill ['az'],   inf_list,            (a,b)->'anan'
 table_fill ['az'],   nan_list,            (a,b)->'anan'
 
 # self keep
-for v in 'az tz pz pfin pinf pnan pnan_inc anan'.split /\s+/g
+for v in 'az tz pz pfin pinf pnan anan'.split /\s+/g
   table_fill [v],[v], (a,b)->v
 
-table_fill ['pz'], ['nz'],     (a,b)->'az'
+table_fill ['pz'], ['pz'],      (a,b)->'pz'
+table_fill ['pz'], ['nz'],      (a,b)->'az'
+table_fill ['nz'], ['nz'],      (a,b)->'pz'
+
+table_fill ['pz'], pfin_list,   (a,b)->'pz'
+table_fill ['nz'], pfin_list,   (a,b)->'nz'
+table_fill ['pz'], nfin_list,   (a,b)->'nz'
+table_fill ['nz'], nfin_list,   (a,b)->'pz'
+
+table_fill ['pz'], ['pinf'],    (a,b)->'pnan'
+table_fill ['nz'], ['pinf'],    (a,b)->'nnan'
+table_fill ['pz'], ['ninf'],    (a,b)->'nnan'
+table_fill ['nz'], ['ninf'],    (a,b)->'pnan'
+
+table_fill ['pfin'], ['pfin'],  (a,b)->'pfin'
+table_fill ['pfin'], ['nfin'],  (a,b)->'nfin'
+table_fill ['nfin'], ['nfin'],  (a,b)->'pfin'
+
+table_fill fin_list, ['pfin'],   (a,b)->a
+table_fill ['pfin_p'], ['nfin'], (a,b)->'nfin_n'
+table_fill ['nfin_p'], ['nfin'], (a,b)->'pfin_n'
+table_fill ['pfin_n'], ['nfin'], (a,b)->'nfin_p'
+table_fill ['nfin_n'], ['nfin'], (a,b)->'pfin_p'
+table_fill ['pfin_a'], ['nfin'], (a,b)->'nfin_a'
+table_fill ['nfin_a'], ['nfin'], (a,b)->'pfin_a'
+
+table_fill ['pfin_p'], ['pfin_p'], (a,b)->'pfin_p'
+table_fill ['nfin_n'], ['nfin_n'], (a,b)->'pfin_p'
+table_fill ['nfin_p'], ['nfin_p'], (a,b)->'pfin_n'
+table_fill ['pfin_p'], ['nfin_n'], (a,b)->'nfin_n'
+table_fill ['pfin_p'], ['nfin_p'], (a,b)->'nfin_p'
+table_fill ['pfin_n'], ['pfin_n'], (a,b)->'pfin_n'
+
+table_fill ['pfin_p'], ['pfin_n'], (a,b)->'pfin_a'
+table_fill ['pfin_p'], ['pfin_a'], (a,b)->'pfin_a'
+table_fill ['pfin_n'], ['pfin_a'], (a,b)->'pfin_a'
+table_fill ['pfin_a'], ['pfin_a'], (a,b)->'pfin_a'
+table_fill ['nfin_n'], ['nfin_a'], (a,b)->'pfin_a'
+table_fill ['nfin_a'], ['nfin_a'], (a,b)->'pfin_a'
+table_fill ['nfin_a'], ['nfin_p'], (a,b)->'pfin_a'
+table_fill ['nfin_a'], ['nfin_n'], (a,b)->'pfin_a'
+table_fill ['nfin_n'], ['nfin_p'], (a,b)->'pfin_a'
+
+table_fill ['pfin_p'], ['nfin_a'], (a,b)->'nfin_a'
+table_fill ['pfin_n'], ['nfin_a'], (a,b)->'nfin_a'
+table_fill ['pfin_a'], ['nfin_a'], (a,b)->'nfin_a'
+table_fill ['pfin_a'], ['nfin_n'], (a,b)->'nfin_a'
+table_fill ['pfin_a'], ['nfin_p'], (a,b)->'nfin_a'
+table_fill ['pfin_n'], ['nfin_p'], (a,b)->'nfin_a'
+table_fill ['pfin_n'], ['nfin_n'], (a,b)->'nfin_a'
+
+table_fill ['pinf'], pfin_list, (a,b)->a
+table_fill ['ninf'], nfin_list, (a,b)->a
+table_fill ['pinf'], nfin_list, (a,b)->'ninf'
+table_fill ['ninf'], pfin_list, (a,b)->'pinf'
+table_fill ['pinf'], ['ninf'],  (a,b)->'ninf'
+table_fill ['ninf'], ['ninf'],  (a,b)->'pinf'
+
+table_fill ['pnan'], ['pz'],    (a,b)->a
+table_fill ['nnan'], ['nz'],    (a,b)->a
+table_fill ['pnan'], ['nz'],    (a,b)->'nnan'
+table_fill ['nnan'], ['pz'],    (a,b)->'pnan'
+
+table_fill ['pnan'], pfin_list, (a,b)->a
+table_fill ['nnan'], nfin_list, (a,b)->a
+table_fill ['pnan'], nfin_list, (a,b)->'nnan'
+table_fill ['nnan'], pfin_list, (a,b)->'pnan'
+
+table_fill ['pnan'], ['nnan'], (a,b)->'nnan'
+table_fill ['nnan'], ['nnan'], (a,b)->'pnan'
+
+table_fill ['pnan'], ['pinf'], (a,b)->'pnan'
+table_fill ['pnan'], ['ninf'], (a,b)->'nnan'
+table_fill ['nnan'], ['pinf'], (a,b)->'nnan'
+table_fill ['nnan'], ['ninf'], (a,b)->'pnan'
+# table_fill ['pnan', 'nnan'], ['pz', 'nz', 'az'],    (a,b)->a # because include tz, and not any _inc
+
+
+table_fill ['pnan_inc'], ['pz'],    (a,b)->'pnan_inc'
+table_fill ['nnan_inc'], ['nz'],    (a,b)->'nnan_inc'
+table_fill ['pnan_inc'], ['nz'],    (a,b)->'nnan_inc'
+table_fill ['nnan_inc'], ['pz'],    (a,b)->'pnan_inc'
+table_fill ['pnan_inc'], pfin_list, (a,b)->a
+table_fill ['nnan_inc'], nfin_list, (a,b)->a
+table_fill ['pnan_inc'], nfin_list, (a,b)->'nnan_inc'
+table_fill ['nnan_inc'], pfin_list, (a,b)->'pnan_inc'
+table_fill ['pnan_inc'], ['pnan'],  (a,b)->'pnan_inc'
+table_fill ['nnan_inc'], ['nnan'],  (a,b)->'nnan_inc'
+table_fill ['pnan_inc'], ['nnan'],  (a,b)->'nnan_inc'
+table_fill ['nnan_inc'], ['pnan'],  (a,b)->'pnan_inc'
+
+table_fill ['pnan_inc'], ['pnan_inc'],(a,b)->'anan'
+table_fill ['pnan_inc'], ['nnan_inc'],(a,b)->'anan'
+table_fill ['nnan_inc'], ['nnan_inc'],(a,b)->'anan'
+table_fill ['pnan_inc', 'nnan_inc'], inf_list, (a,b)->'anan'
 
 
 table_check mul_table
