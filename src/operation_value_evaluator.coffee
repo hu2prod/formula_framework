@@ -37,13 +37,13 @@ a + b = 0{±} # NOT ok, must be 0 because exactly equal values
 Для нормальной, понятной работы нужна табличка
 Все типы особых значений (я бы даже сказал "сказочных")
 
-0  0    aka tz
-1  0{±} aka az
-2  0{+} aka pz
-3  0{-} aka nz
-4  +Fin a > 0 но не +Infinity
+0  0    aka tz true zero
+1  0{±} aka az any zero
+2  0{+} aka pz pos zero
+3  0{-} aka nz neg zero
+4  +Fin a > 0 но не +Infinity aka Finite
 5  -Fin a < 0 но не +Infinity
-6  +Fin{±}
+6  +Fin{±} 
 7  -Fin{±}
 8  +Fin{+}
 9  -Fin{+}
@@ -65,7 +65,7 @@ pz       = 'pz'
 nz       = 'nz'
 pfin     = 'pfin'
 nfin     = 'nfin'
-pfin_p   = 'pfin_p'
+pfin_p   = 'pfin_p' # pos finite with positive zero-bound +Fin{+}
 nfin_p   = 'nfin_p'
 pfin_n   = 'pfin_n'
 nfin_n   = 'nfin_n'
@@ -332,46 +332,51 @@ for v,idx in neg_table
   ### !pragma coverage-skip-block ###
   if v == undefined
     throw new Error "unfilled value #{module.idx2name[idx]}"
+fin_a = (a,b)->a
+zmk_p = (t)->t+'_p'
+zmk_n = (t)->t+'_n'
+zmk_a = (t)->t+'_a'
+
 # ###################################################################################################
 #    add
 # ###################################################################################################
 add_table = table_gen()
 
 # Доминирует b
-table_fill [tz],   all,                         (a,b)->b
-table_fill [pnan, pnan_inc], [pinf],            (a,b)->b
-table_fill [nnan, nnan_inc], [ninf],            (a,b)->b
+table_fill [tz],   all,                               (a,b)->b
+table_fill [pnan, pnan_inc], [pinf],                  (a,b)->b
+table_fill [nnan, nnan_inc], [ninf],                  (a,b)->b
 # Доминирует a
-table_fill [az],   zero_list,                   (a,b)->a
+table_fill [az],   zero_list,                         (a,b)->a
 
-table_fill [pfin, nfin], [pz],                  (a,b)->a+'_p'
-table_fill [pfin, nfin], [nz],                  (a,b)->a+'_n'
-table_fill [pfin, nfin], [az],                  (a,b)->a+'_a'
-table_fill [pfin_a, nfin_a], zero_list_not_tz,  (a,b)->a
-table_fill [pfin_p], [nz, az],                  (a,b)->pfin_a
-table_fill [nfin_p], [nz, az],                  (a,b)->nfin_a
-table_fill [pfin_n], [pz, az],                  (a,b)->pfin_a
-table_fill [nfin_n], [pz, az],                  (a,b)->nfin_a
-table_fill [pfin_p, nfin_p], [pz],              (a,b)->a
-table_fill [pfin_n, nfin_n], [nz],              (a,b)->a
-table_fill [pfin_p, pfin_n], [pfin],            (a,b)->a
-table_fill [nfin_p, nfin_n], [nfin],            (a,b)->a
-table_fill [pfin_a], [pfin, pfin_p, pfin_n, pfin_a], (a,b)->a
-table_fill [nfin_a], [nfin, nfin_p, nfin_n, nfin_a], (a,b)->a
-table_fill [pfin_p], [pfin_n],                  (a,b)->pfin_a
-table_fill [nfin_p], [nfin_n],                  (a,b)->nfin_a
+table_fill [pfin, nfin], [pz],                        (a,b)->zmk_p a
+table_fill [pfin, nfin], [nz],                        (a,b)->zmk_n a
+table_fill [pfin, nfin], [az],                        (a,b)->zmk_a a
+table_fill [pfin_a, nfin_a], zero_list_not_tz,        (a,b)->a
+table_fill [pfin_p], [nz, az],                        (a,b)->pfin_a
+table_fill [nfin_p], [nz, az],                        (a,b)->nfin_a
+table_fill [pfin_n], [pz, az],                        (a,b)->pfin_a
+table_fill [nfin_n], [pz, az],                        (a,b)->nfin_a
+table_fill [pfin_p, nfin_p], [pz],                    fin_a
+table_fill [pfin_n, nfin_n], [nz],                    fin_a
+table_fill [pfin_p, pfin_n], [pfin],                  fin_a
+table_fill [nfin_p, nfin_n], [nfin],                  fin_a
+table_fill [pfin_a], [pfin, pfin_p, pfin_n, pfin_a],  fin_a
+table_fill [nfin_a], [nfin, nfin_p, nfin_n, nfin_a],  fin_a
+table_fill [pfin_p], [pfin_n],                        fin_a
+table_fill [nfin_p], [nfin_n],                        fin_a
 
-table_fill [anan], all,                         (a,b)->a
-table_fill inf_list, zero_list,                 (a,b)->a
-table_fill inf_list, fin_list,                  (a,b)->a
-table_fill [pnan], [pz],                        (a,b)->a
-table_fill [nnan], [nz],                        (a,b)->a
-table_fill [pnan], [az, nz],                    (a,b)->a+'_inc'
-table_fill [nnan], [az, pz],                    (a,b)->a+'_inc'
-table_fill [pnan_inc], zero_list,               (a,b)->a
-table_fill [nnan_inc], zero_list,               (a,b)->a
-table_fill [pnan, pnan_inc], pfin_list,         (a,b)->a
-table_fill [nnan, nnan_inc], nfin_list,         (a,b)->a
+table_fill [anan], all,                               (a,b)->a
+table_fill inf_list, zero_list,                       (a,b)->a
+table_fill inf_list, fin_list,                        (a,b)->a
+table_fill [pnan], [pz],                              (a,b)->a
+table_fill [nnan], [nz],                              (a,b)->a
+table_fill [pnan], [az, nz],                          (a,b)->a+'_inc' # zmk_n
+table_fill [nnan], [az, pz],                          (a,b)->a+'_inc' # zmk_p
+table_fill [pnan_inc], zero_list,                     (a,b)->a
+table_fill [nnan_inc], zero_list,                     (a,b)->a
+table_fill [pnan, pnan_inc], pfin_list,               (a,b)->a
+table_fill [nnan, nnan_inc], nfin_list,               (a,b)->a
 # self keep
 for v in all
   table_fill [v],[v], (a,b)->v

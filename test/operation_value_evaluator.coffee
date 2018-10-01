@@ -42,6 +42,7 @@ pnan_inc.zb_neg = true
 nnan_inc = val(NaN, Infinity, 0)
 nnan_inc.zb_pos = true
 
+# zmk = zero-bound make
 zmk_p = (t)->
   t = t.clone()
   t.value.zb_pos = true
@@ -86,6 +87,11 @@ zero_list = [
   pz
   nz
 ]
+zero_list_not_tz = zero_list.filter (t)->t != tz
+fin_list  = all.filter (t)->isFinite(t.value.value)  and t.value.value != 0
+pfin_list = fin_list.filter (t)->t>0
+nfin_list = fin_list.filter (t)->t<0
+inf_list  = all.filter (t)->!isFinite(t.value.value) and !isNaN t.value.value
 
 assert_weak_eq = (_a, b, extra="")->
   a = _a.value
@@ -156,18 +162,43 @@ describe 'operation_value_evaluator section', ()->
         it '1[-0.1+0.2] + 2[-0.3+0.5] = 3[-0.4+0.7]', ()->
           commutative_test val(1, 0.1, 0.2), val(2, 0.3, 0.5), val(3, 0.4, 0.7)
       
-      table_fill [tz],   all,                         (a,b)->b
-      table_fill [pnan, pnan_inc], [pinf],            (a,b)->b
-      table_fill [nnan, nnan_inc], [ninf],            (a,b)->b
-      table_fill [az],   zero_list,                   (a,b)->a
-      table_fill [pfin, nfin], [pz],                  (a,b)->zmk_p a
-      table_fill [pfin, nfin], [nz],                  (a,b)->zmk_n a
-      table_fill [pfin, nfin], [az],                  (a,b)->zmk_a a
-      # describe "table_fill ['pnan', 'pnan_inc'], ['pinf'],      (a,b)->b", ()->
-      #   for v in all
-      #     do (v)->
-      #       it "tz + #{v.value}", ()->
-      #         commutative_test tz, v, v
+      fin_a = (a,b)->val(a.value.value+b.value.value, 0, 0, 1, a.value.zb_neg, a.value.zb_pos)
+      
+      # Доминирует b
+      table_fill [tz],   all,                               (a,b)->b
+      table_fill [pnan, pnan_inc], [pinf],                  (a,b)->b
+      table_fill [nnan, nnan_inc], [ninf],                  (a,b)->b
+      # Доминирует a
+      table_fill [az],   zero_list,                         (a,b)->a
+      
+      table_fill [pfin, nfin], [pz],                        (a,b)->zmk_p a
+      table_fill [pfin, nfin], [nz],                        (a,b)->zmk_n a
+      table_fill [pfin, nfin], [az],                        (a,b)->zmk_a a
+      table_fill [pfin_a, nfin_a], zero_list_not_tz,        (a,b)->a
+      table_fill [pfin_p], [nz, az],                        (a,b)->pfin_a
+      table_fill [nfin_p], [nz, az],                        (a,b)->nfin_a
+      table_fill [pfin_n], [pz, az],                        (a,b)->pfin_a
+      table_fill [nfin_n], [pz, az],                        (a,b)->nfin_a
+      table_fill [pfin_p, nfin_p], [pz],                    fin_a
+      table_fill [pfin_n, nfin_n], [nz],                    fin_a
+      table_fill [pfin_p, pfin_n], [pfin],                  fin_a
+      table_fill [nfin_p, nfin_n], [nfin],                  fin_a
+      table_fill [pfin_a], [pfin, pfin_p, pfin_n, pfin_a],  fin_a
+      table_fill [nfin_a], [nfin, nfin_p, nfin_n, nfin_a],  fin_a
+      table_fill [pfin_p], [pfin_n],                        fin_a
+      table_fill [nfin_p], [nfin_n],                        fin_a
+      
+      table_fill [anan], all,                               (a,b)->a
+      table_fill inf_list, zero_list,                       (a,b)->a
+      table_fill inf_list, fin_list,                        (a,b)->a
+      table_fill [pnan], [pz],                              (a,b)->a
+      table_fill [nnan], [nz],                              (a,b)->a
+      table_fill [pnan], [az, nz],                          (a,b)->zmk_n a
+      table_fill [nnan], [az, pz],                          (a,b)->zmk_p a
+      table_fill [pnan_inc], zero_list,                     (a,b)->a
+      table_fill [nnan_inc], zero_list,                     (a,b)->a
+      table_fill [pnan, pnan_inc], pfin_list,               (a,b)->a
+      table_fill [nnan, nnan_inc], nfin_list,               (a,b)->a
       
       it 'TODO multiband'
     
