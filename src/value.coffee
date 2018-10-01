@@ -1,4 +1,9 @@
+module = @
 require 'fy'
+@weak_eq = (a,b)->
+  return true if a == b # case Infinity
+  # 1e-15 может оказаться сильно мелким
+  Math.abs(a-b) < 1e-10
 class @Band
   # non-negative
   a : 0
@@ -7,9 +12,9 @@ class @Band
   
   weak_eq : (t)->
     unless isNaN(@a) and isNaN t.a
-      return false if @a != t.a
+      return false if !module.weak_eq @a, t.a
     unless isNaN(@b) and isNaN t.b
-      return false if @b != t.b
+      return false if !module.weak_eq @b, t.b
     return false if @prob_cap != t.prob_cap
     return true
   
@@ -20,6 +25,17 @@ class @Band
     return false if @b != t.b
     return false if @prob_cap != t.prob_cap
     return true
+  
+  set : (t)->
+    @a = t.a
+    @b = t.b
+    @prob_cap = t.prob_cap
+    return
+  
+  clone : ()->
+    ret = new module.Band
+    ret.set @
+    ret
 
 class @Value
   value     : 0 # precise
@@ -51,7 +67,7 @@ class @Value
   
   weak_eq : (t)->
     unless isNaN(@value) and isNaN t.value
-      return false if @value  != t.value
+      return false if !module.weak_eq @value, t.value
     return false if @zb_neg != t.zb_neg
     return false if @zb_pos != t.zb_pos
     return false if @band_list.length != t.band_list.length
@@ -104,3 +120,14 @@ class @Value
     arr_set @band_list, new_band_list
     return
   
+  set : (t)->
+    @value = t.value
+    @zb_neg = t.zb_neg
+    @zb_pos = t.zb_pos
+    @band_list = t.band_list.map (t)->t.clone()
+    return
+  
+  clone : ()->
+    ret = new module.Value
+    ret.set @
+    ret

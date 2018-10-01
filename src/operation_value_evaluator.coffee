@@ -58,6 +58,27 @@ a + b = 0{±} # NOT ok, must be 0 because exactly equal values
 18 ±NaN    {-Infinity, + Infinity}  aka anan (true NaN)
 ###
 
+# for isomorphic tests
+tz       = 'tz'
+az       = 'az'
+pz       = 'pz'
+nz       = 'nz'
+pfin     = 'pfin'
+nfin     = 'nfin'
+pfin_p   = 'pfin_p'
+nfin_p   = 'nfin_p'
+pfin_n   = 'pfin_n'
+nfin_n   = 'nfin_n'
+pfin_a   = 'pfin_a'
+nfin_a   = 'nfin_a'
+pinf     = 'pinf'
+ninf     = 'ninf'
+pnan     = 'pnan'
+nnan     = 'nnan'
+pnan_inc = 'pnan_inc'
+nnan_inc = 'nnan_inc'
+anan     = 'anan'
+
 all = @idx2name = """
 tz
 az
@@ -83,6 +104,102 @@ anan
 @name2idx = {}
 for v,k in @idx2name
   @name2idx[v] = k
+
+# @scalar2index = (t)->
+#   return module.name2idx.tz   if t == 0
+#   return module.name2idx.pinf if t ==  Infinity
+#   return module.name2idx.ninf if t == -Infinity
+#   return module.name2idx.anan if isNaN t
+#   return module.name2idx.pfin if t > 0
+#   return module.name2idx.nfin
+
+@value2index = (t)->
+  if t.value == 0
+    return module.name2idx.az if t.zb_pos and t.zb_neg
+    return module.name2idx.pz if t.zb_pos
+    return module.name2idx.nz if t.zb_neg
+    return module.name2idx.tz
+  return module.name2idx.pinf if t.value ==  Infinity
+  return module.name2idx.ninf if t.value == -Infinity
+  if isNaN t.value
+    band = t.band_list[0]
+    if !band
+      ### !pragma coverage-skip-block ###
+      throw new Error "invalid value: nan with no bands"
+    {a,b} = band
+    return module.name2idx.anan if a == Infinity and b == Infinity
+    if a == Infinity
+      return module.name2idx.nnan_inc if t.zb_pos
+      return module.name2idx.nnan 
+    if b == Infinity
+      return module.name2idx.pnan_inc if t.zb_neg
+      return module.name2idx.pnan
+    
+    # ### !pragma coverage-skip-block ###
+    throw new Error "value2index WTF '#{t}'"
+  if t.value > 0
+    return module.name2idx.pfin_a if t.zb_pos and t.zb_neg
+    return module.name2idx.pfin_p if t.zb_pos
+    return module.name2idx.pfin_n if t.zb_neg
+    return module.name2idx.pfin
+  return module.name2idx.nfin_a if t.zb_pos and t.zb_neg
+  return module.name2idx.nfin_p if t.zb_pos
+  return module.name2idx.nfin_n if t.zb_neg
+  return module.name2idx.nfin
+
+@index2value = (idx, t)->
+  name2idx = module.name2idx
+  switch idx
+    when name2idx.tz
+      t.value = 0
+    when name2idx.az
+      t.value = 0
+      t.zb_neg = true
+      t.zb_pos = true
+    when name2idx.nz
+      t.value = 0
+      t.zb_neg = true
+    when name2idx.pz
+      t.value = 0
+      t.zb_pos = true
+    when name2idx.pfin, name2idx.nfin
+      'nothing'
+    when name2idx.pfin_p
+      t.zb_pos = true
+    when name2idx.nfin_p
+      t.zb_pos = true
+    when name2idx.pfin_n
+      t.zb_neg = true
+    when name2idx.nfin_n
+      t.zb_neg = true
+    when name2idx.pfin_a
+      t.zb_neg = true
+      t.zb_pos = true
+    when name2idx.nfin_a
+      t.zb_neg = true
+      t.zb_pos = true
+    when name2idx.pinf
+      t.value = Infinity
+    when name2idx.ninf
+      t.value = -Infinity
+    when name2idx.pnan
+      t.value = NaN
+    when name2idx.nnan
+      t.value = NaN
+    when name2idx.pnan_inc
+      t.value = NaN
+      t.zb_neg = true
+    when name2idx.nnan_inc
+      t.value = NaN
+      t.zb_pos = true
+    when name2idx.anan
+      t.value = NaN
+    when CALC
+      'nothing'
+    else
+      throw new Error "index2value wtf"
+  return
+
 # ###################################################################################################
 #    helpers
 # ###################################################################################################
@@ -137,12 +254,14 @@ nnan_inc
 anan
 """.split /\n/g
 
+NOT_SET = -1
+CALC    = -2
 # self-check
 table_check = (table)->
   ### !pragma coverage-skip-block ###
   for row,a in table
     for v,b in row
-      if v == -1
+      if v == NOT_SET
         throw new Error "unfilled value #{i2n a}, #{i2n b}"
 current_table = null
 table_gen = ()->
@@ -150,16 +269,18 @@ table_gen = ()->
   for a in [0 ... all.length]
     ret.push loc = []
     for b in [0 ... all.length]
-      loc.push -1 # unfilled
+      loc.push NOT_SET
   ret
 
 n2i = (val)->
+  return CALC if val == 'calc'
   idx = module.name2idx[val]
   if !idx?
     throw new Error "unknown val #{val}"
   idx
 
 i2n = (idx)->
+  return 'calc' if idx == CALC
   val = module.idx2name[idx]
   if !val?
     throw new Error "unknown idx #{idx}"
@@ -191,20 +312,20 @@ fill = (a, b)->
   neg_table[n2i b] = n2i a
   return
 
-fill 'tz', 'tz'
-fill 'az', 'az'
-fill 'pz', 'nz'
+fill tz, tz
+fill az, az
+fill pz, nz
 
-fill 'pfin',  'nfin'
-fill 'pfin_a', 'nfin_a'
-fill 'pfin_p', 'nfin_n'
-fill 'pfin_n', 'nfin_p'
+fill pfin,   nfin
+fill pfin_a, nfin_a
+fill pfin_p, nfin_n
+fill pfin_n, nfin_p
 
-fill 'pinf', 'ninf'
+fill pinf, ninf
 
-fill 'pnan', 'nnan'
-fill 'pnan_inc', 'nnan_inc'
-fill 'anan', 'anan'
+fill pnan, nnan
+fill pnan_inc, nnan_inc
+fill anan, anan
 
 # self-check
 for v,idx in neg_table
@@ -217,47 +338,47 @@ for v,idx in neg_table
 add_table = table_gen()
 
 # Доминирует b
-table_fill ['tz'],   all,                       (a,b)->b
-table_fill ['pnan', 'pnan_inc'], ['pinf'],      (a,b)->b
-table_fill ['nnan', 'nnan_inc'], ['ninf'],      (a,b)->b
+table_fill [tz],   all,                         (a,b)->b
+table_fill [pnan, pnan_inc], [pinf],            (a,b)->b
+table_fill [nnan, nnan_inc], [ninf],            (a,b)->b
 # Доминирует a
-table_fill ['az'],   zero_list,                 (a,b)->a
+table_fill [az],   zero_list,                   (a,b)->a
 
-table_fill ['pfin', 'nfin'], ['pz'],            (a,b)->a+'_p'
-table_fill ['pfin', 'nfin'], ['nz'],            (a,b)->a+'_n'
-table_fill ['pfin', 'nfin'], ['az'],            (a,b)->a+'_a'
-table_fill ['pfin_a', 'nfin_a'], zero_list_not_tz,(a,b)->a
-table_fill ['pfin_p'], ['nz', 'az'],            (a,b)->'pfin_a'
-table_fill ['nfin_p'], ['nz', 'az'],            (a,b)->'nfin_a'
-table_fill ['pfin_n'], ['pz', 'az'],            (a,b)->'pfin_a'
-table_fill ['nfin_n'], ['pz', 'az'],            (a,b)->'nfin_a'
-table_fill ['pfin_p', 'nfin_p'], ['pz'],        (a,b)->a
-table_fill ['pfin_n', 'nfin_n'], ['nz'],        (a,b)->a
-table_fill ['pfin_p', 'pfin_n'], ['pfin'],      (a,b)->a
-table_fill ['nfin_p', 'nfin_n'], ['nfin'],      (a,b)->a
-table_fill ['pfin_a'], ['pfin', 'pfin_p', 'pfin_n', 'pfin_a'], (a,b)->a
-table_fill ['nfin_a'], ['nfin', 'nfin_p', 'nfin_n', 'nfin_a'], (a,b)->a
-table_fill ['pfin_p'], ['pfin_n'],              (a,b)->'pfin_a'
-table_fill ['nfin_p'], ['nfin_n'],              (a,b)->'nfin_a'
+table_fill [pfin, nfin], [pz],                  (a,b)->a+'_p'
+table_fill [pfin, nfin], [nz],                  (a,b)->a+'_n'
+table_fill [pfin, nfin], [az],                  (a,b)->a+'_a'
+table_fill [pfin_a, nfin_a], zero_list_not_tz,  (a,b)->a
+table_fill [pfin_p], [nz, az],                  (a,b)->pfin_a
+table_fill [nfin_p], [nz, az],                  (a,b)->nfin_a
+table_fill [pfin_n], [pz, az],                  (a,b)->pfin_a
+table_fill [nfin_n], [pz, az],                  (a,b)->nfin_a
+table_fill [pfin_p, nfin_p], [pz],              (a,b)->a
+table_fill [pfin_n, nfin_n], [nz],              (a,b)->a
+table_fill [pfin_p, pfin_n], [pfin],            (a,b)->a
+table_fill [nfin_p, nfin_n], [nfin],            (a,b)->a
+table_fill [pfin_a], [pfin, pfin_p, pfin_n, pfin_a], (a,b)->a
+table_fill [nfin_a], [nfin, nfin_p, nfin_n, nfin_a], (a,b)->a
+table_fill [pfin_p], [pfin_n],                  (a,b)->pfin_a
+table_fill [nfin_p], [nfin_n],                  (a,b)->nfin_a
 
-table_fill ['anan'], all,                       (a,b)->a
+table_fill [anan], all,                         (a,b)->a
 table_fill inf_list, zero_list,                 (a,b)->a
 table_fill inf_list, fin_list,                  (a,b)->a
-table_fill ['pnan'], ['pz'],                    (a,b)->a
-table_fill ['nnan'], ['nz'],                    (a,b)->a
-table_fill ['pnan'], ['az', 'nz'],              (a,b)->a+'_inc'
-table_fill ['nnan'], ['az', 'pz'],              (a,b)->a+'_inc'
-table_fill ['pnan_inc'], zero_list,             (a,b)->a
-table_fill ['nnan_inc'], zero_list,             (a,b)->a
-table_fill ['pnan', 'pnan_inc'], pfin_list,     (a,b)->a
-table_fill ['nnan', 'nnan_inc'], nfin_list,     (a,b)->a
+table_fill [pnan], [pz],                        (a,b)->a
+table_fill [nnan], [nz],                        (a,b)->a
+table_fill [pnan], [az, nz],                    (a,b)->a+'_inc'
+table_fill [nnan], [az, pz],                    (a,b)->a+'_inc'
+table_fill [pnan_inc], zero_list,               (a,b)->a
+table_fill [nnan_inc], zero_list,               (a,b)->a
+table_fill [pnan, pnan_inc], pfin_list,         (a,b)->a
+table_fill [nnan, nnan_inc], nfin_list,         (a,b)->a
 # self keep
 for v in all
   table_fill [v],[v], (a,b)->v
 
 table_fill ['pz'], ['nz'],     (a,b)->'az'
 table_fill ['pinf'], ['ninf'], (a,b)->'anan'
-table_fill ['pfin'], ['nfin'], (a,b)->'anan' # CALC
+table_fill ['pfin'], ['nfin'], (a,b)->'calc'
 for v in 'pnan nnan'.split /\s+/
   table_fill [v], [v+'_inc'], (a,b)->v+'_inc'
 
@@ -268,7 +389,7 @@ table_fill ['nnan', 'nnan_inc'], ['pinf'], (a,b)->'anan'
 # pnan + nfin -> pnan nnan (DROP precision anan)
 table_fill ['pnan', 'pnan_inc'], nfin_list, (a,b)->'anan'
 table_fill ['nnan', 'nnan_inc'], pfin_list, (a,b)->'anan'
-table_fill pfin_list, nfin_list, (a,b)->'anan' # CALC
+table_fill pfin_list, nfin_list, (a,b)->'calc' # CALC
 table_fill ['pnan', 'pnan_inc'], ['nnan', 'nnan_inc'], (a,b)->'anan'
 table_fill ['pnan', 'pnan_inc'], nfin_list, (a,b)->'anan'
 table_fill ['nnan', 'nnan_inc'], pfin_list, (a,b)->'anan'
@@ -285,7 +406,6 @@ table_fill ['nnan', 'nnan_inc'], pfin_list, (a,b)->'anan'
 # nnan[_inc]+pfin -> anan
 
 table_check add_table
-p "DEBUG add ok"
 
 # ###################################################################################################
 #    mul
@@ -406,6 +526,19 @@ table_fill ['pnan_inc', 'nnan_inc'], inf_list, (a,b)->'anan'
 
 table_check mul_table
 
+safe_min = (value, a)->
+  res = value - a
+  if isNaN res
+    return value if !isNaN value
+    return -a
+  res
+safe_max = (value, b)->
+  res = value + b
+  if isNaN res
+    return value if !isNaN value
+    return b
+  res
+
 @eval = (expr)->
   # TODO
   if expr instanceof un_op
@@ -426,9 +559,16 @@ table_check mul_table
     a = module.eval expr.a
     b = module.eval expr.b
     switch expr.name
-      # TODO NaN support for add, sub, mul
       when 'add'
         ret.value = a.value + b.value
+        a_idx = module.value2index a
+        b_idx = module.value2index b
+        r_idx = add_table[a_idx][b_idx]
+        if r_idx != CALC
+          module.index2value r_idx, ret
+        else
+          ret.zb_neg = a.zb_neg or b.zb_neg
+          ret.zb_pos = a.zb_pos or b.zb_pos
         
         band_hash = {}
         sorted_band_list = []
@@ -437,28 +577,48 @@ table_check mul_table
         for band_a in a_band_list
           sorted_band_list.clear() # -1 alloc
           for band_b in b_band_list
+            ###
+            # this sweet code doesn't work for Infinity cases (tends to -Infinity+Infinity)
             ret_band = new Band
+            p band_a
+            p band_b
             ret_band.a = band_a.a + band_b.a
             ret_band.b = band_a.b + band_b.b
+            if isNaN(ret_band.a) or isNaN(ret_band.b)
+              ret_band.a = Infinity
+              ret_band.b = Infinity
             ret_band.prob_cap = band_a.prob_cap * band_b.prob_cap
-            continue if ret_band.a == 0 and ret_band.b == 0
-            sorted_band_list.push ret_band
-          ret.merge_sorted_band_list sorted_band_list
-        
-      when 'sub'
-        ret.value = a.value - b.value
-        
-        band_hash = {}
-        sorted_band_list = []
-        a_band_list = band_list_select a
-        b_band_list = band_list_select b
-        for band_a in a_band_list
-          sorted_band_list.clear() # -1 alloc
-          for band_b in b_band_list
+            ###
             ret_band = new Band
-            ret_band.a = band_a.a + band_b.b
-            ret_band.b = band_a.b + band_b.a
-            ret_band.prob_cap = band_a.prob_cap * band_b.prob_cap
+            a_min = safe_min a.value, band_a.a
+            a_max = safe_max a.value, band_a.b
+            b_min = safe_min b.value, band_b.a
+            b_max = safe_max b.value, band_b.b
+            
+            min = a_min + b_min
+            max = a_max + b_max
+            
+            if ret.value == -Infinity
+              ret_band.a = 0
+            else if min == -Infinity
+              ret_band.a = Infinity
+            else if min == Infinity
+              ret_band.a = 0
+            else
+              ret_band.a = band_a.a + band_b.a
+            
+            if ret.value == Infinity
+              ret_band.b = 0
+            else if max == Infinity
+              ret_band.b = Infinity
+            else if max == -Infinity
+              ret_band.b = 0
+            else
+              ret_band.b = band_a.b + band_b.b
+            
+            if isNaN(ret_band.a) or isNaN(ret_band.b)
+              ret_band.a = Infinity
+              ret_band.b = Infinity
             continue if ret_band.a == 0 and ret_band.b == 0
             sorted_band_list.push ret_band
           ret.merge_sorted_band_list sorted_band_list
