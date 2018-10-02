@@ -123,6 +123,20 @@ describe 'operation_value_evaluator section', ()->
       it 'TODO Infinity'
       it 'TODO -Infinity'
       it 'TODO multiband'
+    describe 'abs', ()->
+      it 'abs(1) = 1', ()->
+        assert_weak_eq val(1), mod.eval op.abs val(1)
+        return
+      
+      it 'abs(-1) = 1', ()->
+        assert_weak_eq val(1), mod.eval op.abs val(-1)
+        return
+      
+      # it '-(1±0.1) = -1±0.1', ()->
+      #   assert_weak_eq val(-1, 0.1), mod.eval op.neg val(1, 0.1)
+      # 
+      # it '-(1[-0.1+0.2]) = -1[-0.2+0.1]', ()->
+      #   assert_weak_eq val(-1, 0.2, 0.1), mod.eval op.neg val(1, 0.1, 0.2)
     
     describe 'throws', ()->
       it 'bad op', ()->
@@ -223,14 +237,14 @@ describe 'operation_value_evaluator section', ()->
       
       it 'TODO multiband'
     
-    # describe 'mul', ()->
-    #   commutative_test = (a, b ,res)->
-    #     assert res.value.weak_eq mod.eval op.mul a, b
-    #     assert res.value.weak_eq(mod.eval op.mul b, a), 'commutative_test broken'
-    #   
-    #   it '2 * 3 = 6', ()->
-    #     commutative_test val(2), val(3), val(6)
-    #     return
+    describe 'mul', ()->
+      commutative_test = (a, b ,res)->
+        assert_weak_eq res,  mod.eval op.mul a, b
+        assert_weak_eq res, (mod.eval op.mul b, a), 'commutative_test broken'
+      
+      it '2 * 3 = 6', ()->
+        commutative_test val(2), val(3), val(6)
+        return
     #   
     #   it '2±1 * 3 = 6±3', ()->
     #     commutative_test val(2, 1), val(3), val(6, 3)
@@ -411,6 +425,14 @@ describe 'operation_value_evaluator section', ()->
     #   
     #   it 'TODO multiband'
     
+    describe 'div', ()->
+      commutative_test = (a, b ,res)->
+        assert_weak_eq res,  mod.eval op.div a, b
+        assert_weak_eq res, (mod.eval op.div b, a), 'commutative_test broken'
+      
+      it '2 / 2 = 1', ()->
+        commutative_test val(2), val(2), val(1)
+        return
       # describe 'div', ()->
       #   it '2 / 2 = 1', ()->
       #     assert val(1).value.weak_eq mod.eval op.div val(2), val(2)

@@ -557,6 +557,28 @@ safe_max = (value, b)->
           ret_band.a = band.b
           ret_band.b = band.a
           ret_band.prob_cap = band.prob_cap
+      
+      when 'abs'
+        ret.value = Math.abs pos.value
+        for band in pos.band_list
+          ret.band_list.push ret_band = new Band
+          ret_band.a = 0
+          ret_band.b = Math.max band.a, band.b
+          ret_band.prob_cap = band.prob_cap
+      
+      when 'inv'
+        ret.value = 1/pos.value
+        for band in pos.band_list
+          ret.band_list.push ret_band = new Band
+          val_a = 1/(ret.value - band.a)
+          val_b = 1/(ret.value + band.b)
+          
+          val_min = Math.min val_a, val_b
+          val_max = Math.max val_a, val_b
+          
+          ret_band.a = ret.value - val_min
+          ret_band.b = val_max - ret.value
+          ret_band.prob_cap = band.prob_cap
       else
         throw new Error "Unknown un_op #{expr.name}"
   else if expr instanceof bin_op
@@ -629,7 +651,6 @@ safe_max = (value, b)->
           ret.merge_sorted_band_list sorted_band_list
       
       when 'mul'
-        debugger
         ret.value = a.value * b.value
         ###
         Откуда берется
