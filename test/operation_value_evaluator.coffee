@@ -12,8 +12,6 @@ val = (t, a=0, b=a, prob_cap=1)->
   expr = new Variable
   expr.value = new Value
   expr.value.value = t
-  # expr.value.zb_neg = zb_neg
-  # expr.value.zb_pos = zb_pos
   if a != 0 or b != 0
     expr.value.band_list.push band = new Band
     band.a = t-a

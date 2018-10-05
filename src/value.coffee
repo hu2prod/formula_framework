@@ -42,10 +42,6 @@ class @Band
 
 class @Value
   value     : 0 # precise
-  # zero-band
-  # true means that it includes this range
-  zb_neg    : false
-  zb_pos    : false
   
   band_list : [] # array<Band>
   constructor:()->
@@ -61,20 +57,12 @@ class @Value
         ret += "±#{module.weak_round db}"
       else
         ret += "[#{a},#{b}]"
-    if @zb_neg and @zb_pos
-      ret += '{±}'
-    else if @zb_pos
-      ret += '{+}'
-    else if @zb_neg
-      ret += '{-}'
     
     ret
   
   weak_eq : (t)->
     unless isNaN(@value) and isNaN t.value
       return false if !module.weak_eq @value, t.value
-    return false if @zb_neg != t.zb_neg
-    return false if @zb_pos != t.zb_pos
     return false if @band_list.length != t.band_list.length
     for band,idx in @band_list
       check_band = t.band_list[idx]
@@ -84,8 +72,6 @@ class @Value
   eq : (t)->
     return false if !isFinite @.value
     return false if @value  != t.value
-    return false if @zb_neg != t.zb_neg
-    return false if @zb_pos != t.zb_pos
     return false if @band_list.length != t.band_list.length
     for band,idx in @band_list
       check_band = t.band_list[idx]
@@ -127,8 +113,6 @@ class @Value
   
   set : (t)->
     @value = t.value
-    @zb_neg = t.zb_neg
-    @zb_pos = t.zb_pos
     @band_list = t.band_list.map (t)->t.clone()
     return
   

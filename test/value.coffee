@@ -11,11 +11,9 @@ mk_band = (a=0, b=0, prob_cap = 1)->
   ret.b = b
   ret.prob_cap = prob_cap
   ret
-mk_value = (t, zb_neg = false, zb_pos = false)->
+mk_value = (t)->
   ret = new Value
   ret.value = t
-  ret.zb_pos = zb_pos
-  ret.zb_neg = zb_neg
   ret
 
 describe 'value section', ()->
@@ -35,21 +33,6 @@ describe 'value section', ()->
       value = mk_value 0
       value.band_list.push mk_band -1, 2
       assert.strictEqual '0[-1,2]', value.toString()
-      return
-    
-    it '1{+}', ()->
-      value = mk_value 1, false, true
-      assert.strictEqual '1{+}', value.toString()
-      return
-    
-    it '1{-}', ()->
-      value = mk_value 1, true, false
-      assert.strictEqual '1{-}', value.toString()
-      return
-    
-    it '1{±}', ()->
-      value = mk_value 1, true, true
-      assert.strictEqual '1{±}', value.toString()
       return
   # ###################################################################################################
   #    eq
@@ -123,36 +106,6 @@ describe 'value section', ()->
       b = mk_value 1
       b.band_list.push mk_band 0.1, 0.2, 0.3
       b.band_list.push mk_band 0.2, 0.3, 0.7
-      assert !a.eq b
-    # zero-band
-    it '1{+} == 1{+}', ()->
-      a = mk_value 1, false, true
-      b = mk_value 1, false, true
-      assert a.eq b
-    
-    it '1{-} == 1{-}', ()->
-      a = mk_value 1, true, false
-      b = mk_value 1, true, false
-      assert a.eq b
-    
-    it '1{±} == 1{±}', ()->
-      a = mk_value 1, true, true
-      b = mk_value 1, true, true
-      assert a.eq b
-    
-    it '1{+} != 1', ()->
-      a = mk_value 1, false, true
-      b = mk_value 1
-      assert !a.eq b
-    
-    it '1{±} != 1', ()->
-      a = mk_value 1, true, false
-      b = mk_value 1
-      assert !a.eq b
-    
-    it '1{-} != 1', ()->
-      a = mk_value 1, true, true
-      b = mk_value 1
       assert !a.eq b
     # NaN, Infinity
     it 'NaN != NaN', ()->
@@ -269,36 +222,6 @@ describe 'value section', ()->
       b = mk_value 1
       b.band_list.push mk_band 0.1, 0.2, 0.3
       b.band_list.push mk_band 0.2, 0.3, 0.7
-      assert !a.weak_eq b
-    # zero-band
-    it '1{+} == 1{+}', ()->
-      a = mk_value 1, false, true
-      b = mk_value 1, false, true
-      assert a.weak_eq b
-    
-    it '1{-} == 1{-}', ()->
-      a = mk_value 1, true, false
-      b = mk_value 1, true, false
-      assert a.weak_eq b
-    
-    it '1{±} == 1{±}', ()->
-      a = mk_value 1, true, true
-      b = mk_value 1, true, true
-      assert a.weak_eq b
-    
-    it '1{+} != 1', ()->
-      a = mk_value 1, false, true
-      b = mk_value 1
-      assert !a.weak_eq b
-    
-    it '1{±} != 1', ()->
-      a = mk_value 1, true, false
-      b = mk_value 1
-      assert !a.weak_eq b
-    
-    it '1{-} != 1', ()->
-      a = mk_value 1, true, true
-      b = mk_value 1
       assert !a.weak_eq b
     # WEAK DIFFERENCE
     # NaN, Infinity
