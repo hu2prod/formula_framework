@@ -4,6 +4,9 @@ require 'fy'
   return true if a == b # case Infinity
   # 1e-15 может оказаться сильно мелким
   Math.abs(a-b) < 1e-10
+
+@weak_round = (t)->
+  Math.round(t*1e10)/1e10
 class @Band
   # non-negative
   a : 0
@@ -52,10 +55,12 @@ class @Value
     ret = ''+@value
     if @band_list.length
       {a,b} = @band_list[0]
-      if a == b
-        ret += "±#{a}"
+      da = @value - a
+      db = b - @value
+      if module.weak_eq da, db
+        ret += "±#{module.weak_round db}"
       else
-        ret += "[-#{a}+#{b}]"
+        ret += "[#{a},#{b}]"
     if @zb_neg and @zb_pos
       ret += '{±}'
     else if @zb_pos

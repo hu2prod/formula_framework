@@ -27,14 +27,14 @@ describe 'value section', ()->
     
     it '1±0.1', ()->
       value = mk_value 1
-      value.band_list.push mk_band 0.1, 0.1
+      value.band_list.push mk_band 1-0.1, 1+0.1
       assert.strictEqual '1±0.1', value.toString()
       return
     
-    it '0[-1+2]', ()->
+    it '0[-1,2]', ()->
       value = mk_value 0
-      value.band_list.push mk_band 1, 2
-      assert.strictEqual '0[-1+2]', value.toString()
+      value.band_list.push mk_band -1, 2
+      assert.strictEqual '0[-1,2]', value.toString()
       return
     
     it '1{+}', ()->
