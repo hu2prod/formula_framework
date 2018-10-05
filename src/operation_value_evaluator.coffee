@@ -579,6 +579,28 @@ safe_max = (value, b)->
           ret_band.a = ret.value - val_min
           ret_band.b = val_max - ret.value
           ret_band.prob_cap = band.prob_cap
+      
+      when 'ln'
+        ret.value = Math.log pos.value
+        for band in pos.band_list
+          ret.band_list.push ret_band = new Band
+          a = ret.value - band.a
+          b = ret.value + band.b
+          if a < 0
+            ret_band.a = Infinity
+          else
+            ret_band.a = ret.value - Math.log(a)
+          
+          if b < 0
+            ret_band.b = 0
+          else if b == Infinity
+            ret_band.b = Infinity
+          else if pos.value <= 0 # because result is nnan
+            # БЛЯ. Причина что бы переделать a,b в абсолютные значения
+            # ret_band.b = Math.log b
+            ret_band.b = 0
+          
+          ret_band.prob_cap = band.prob_cap
       else
         throw new Error "Unknown un_op #{expr.name}"
   else if expr instanceof bin_op
