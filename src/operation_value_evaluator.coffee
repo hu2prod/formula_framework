@@ -67,6 +67,15 @@ band_list_select = (value)->
             ret_band.b = val_max
           ret_band.prob_cap = band.prob_cap
       
+      when 'exp'
+        ret.value = Math.exp pos.value
+        for band in pos.band_list
+          ret.band_list.push ret_band = new Band
+          ret_band.a = Math.exp band.a
+          ret_band.b = Math.exp band.b
+          
+          ret_band.prob_cap = band.prob_cap
+      
       when 'ln'
         ret.value = Math.log pos.value
         for band in pos.band_list

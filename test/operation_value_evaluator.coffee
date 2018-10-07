@@ -127,6 +127,31 @@ describe 'operation_value_evaluator section', ()->
       it 'TODO inc, excl ranges (aka zeroband)'
       it 'TODO multiband'
     
+    describe 'exp', ()->
+      it 'exp(0) = 1', ()->
+        assert_weak_eq val(1), mod.eval op.exp val(0)
+        return
+      
+      it 'exp(1) = E', ()->
+        assert_weak_eq val(Math.E), mod.eval op.exp val(1)
+        return
+      
+      it 'exp(-1) = 1/E', ()->
+        assert_weak_eq val(1/Math.E), mod.eval op.exp val(-1)
+        return
+      
+      it 'exp(-Infinity) = 0', ()->
+        assert_weak_eq val(0), mod.eval op.exp val(-Infinity)
+        return
+      
+      it 'exp(Infinity) = Infinity', ()->
+        assert_weak_eq val(Infinity), mod.eval op.exp val(Infinity)
+        return
+      
+      it 'exp(0[-0+1]) = 1[1,E]', ()->
+        assert_weak_eq aval(1, 1, Math.E), mod.eval op.exp aval(0, 0, 1)
+        return
+    
     describe 'ln', ()->
       it 'ln(e) = 1', ()->
         assert_weak_eq val(1), mod.eval op.ln val(Math.E)
@@ -172,58 +197,54 @@ describe 'operation_value_evaluator section', ()->
         assert_weak_eq res,  mod.eval op.add a, b
         assert_weak_eq res, (mod.eval op.add b, a), 'commutative_test broken'
       
-      describe 'trivial', ()->
-        it '1 + 2 = 3', ()->
-          commutative_test val(1), val(2), val(3)
-          return
-        
-        it '1±0.3 + 2 = 3±0.3', ()->
-          commutative_test val(1, 0.3), val(2), val(3, 0.3)
-        
-        it '1±0.3 + 2±0.4 = 3±0.7', ()->
-          commutative_test val(1, 0.3), val(2, 0.4), val(3, 0.7)
-        
-        it '1[-0.1+0.2] + 2[-0.3+0.5] = 3[-0.4+0.7]', ()->
-          commutative_test val(1, 0.1, 0.2), val(2, 0.3, 0.5), val(3, 0.4, 0.7)
-        
-        it '1[-Infinity+0.2] + 2[-0.3+0.5] = 3[-Infinity+0.7]', ()->
-          commutative_test val(1, Infinity, 0.2), val(2, 0.3, 0.5), val(3, Infinity, 0.7)
-        
-        it '1[-0.1+Infinity] + 2[-0.3+0.5] = 3[-0.4+Infinity]', ()->
-          commutative_test val(1, 0.1, Infinity), val(2, 0.3, 0.5), val(3, 0.4, Infinity)
-        
-        it '1[-0.1+Infinity] + 2[-Infinity+0.5] = 3[-Infinity+Infinity]', ()->
-          commutative_test val(1, 0.1, Infinity), val(2, Infinity, 0.5), val(3, Infinity, Infinity)
-        
-        it '1[-Infinity+Infinity] + 2[-Infinity+0.5] = 3[-Infinity+Infinity]', ()->
-          commutative_test val(1, Infinity, Infinity), val(2, Infinity, 0.5), val(3, Infinity, Infinity)
-        
-        it '1[-0.1+Infinity] + 2[-Infinity+Infinity] = 3[-Infinity+Infinity]', ()->
-          commutative_test val(1, 0.1, Infinity), val(2, Infinity, Infinity), val(3, Infinity, Infinity)
-        
-        it '-Infinity[-Infinity,-Infinity] + Infinity[+Infinity,+Infinity] = NaN[-Infinity,+Infinity]', ()->
-          commutative_test aval(-Infinity, -Infinity, -Infinity), aval(Infinity, Infinity, Infinity), aval(NaN, -Infinity, Infinity)
+      it '1 + 2 = 3', ()->
+        commutative_test val(1), val(2), val(3)
+        return
+      
+      it '1±0.3 + 2 = 3±0.3', ()->
+        commutative_test val(1, 0.3), val(2), val(3, 0.3)
+      
+      it '1±0.3 + 2±0.4 = 3±0.7', ()->
+        commutative_test val(1, 0.3), val(2, 0.4), val(3, 0.7)
+      
+      it '1[-0.1+0.2] + 2[-0.3+0.5] = 3[-0.4+0.7]', ()->
+        commutative_test val(1, 0.1, 0.2), val(2, 0.3, 0.5), val(3, 0.4, 0.7)
+      
+      it '1[-Infinity+0.2] + 2[-0.3+0.5] = 3[-Infinity+0.7]', ()->
+        commutative_test val(1, Infinity, 0.2), val(2, 0.3, 0.5), val(3, Infinity, 0.7)
+      
+      it '1[-0.1+Infinity] + 2[-0.3+0.5] = 3[-0.4+Infinity]', ()->
+        commutative_test val(1, 0.1, Infinity), val(2, 0.3, 0.5), val(3, 0.4, Infinity)
+      
+      it '1[-0.1+Infinity] + 2[-Infinity+0.5] = 3[-Infinity+Infinity]', ()->
+        commutative_test val(1, 0.1, Infinity), val(2, Infinity, 0.5), val(3, Infinity, Infinity)
+      
+      it '1[-Infinity+Infinity] + 2[-Infinity+0.5] = 3[-Infinity+Infinity]', ()->
+        commutative_test val(1, Infinity, Infinity), val(2, Infinity, 0.5), val(3, Infinity, Infinity)
+      
+      it '1[-0.1+Infinity] + 2[-Infinity+Infinity] = 3[-Infinity+Infinity]', ()->
+        commutative_test val(1, 0.1, Infinity), val(2, Infinity, Infinity), val(3, Infinity, Infinity)
+      
+      it '-Infinity[-Infinity,-Infinity] + Infinity[+Infinity,+Infinity] = NaN[-Infinity,+Infinity]', ()->
+        commutative_test aval(-Infinity, -Infinity, -Infinity), aval(Infinity, Infinity, Infinity), aval(NaN, -Infinity, Infinity)
       
       it 'TODO multiband'
   #   
     describe 'sub', ()->
       # TODO + neg rules test
       # neg(a-b) = neg(b) - neg(a)
-      describe 'trivial', ()->
-        it '1 - 2 = -1', ()->
-          assert val(-1).value.weak_eq mod.eval op.sub val(1), val(2)
-          return
-        
-        it '1±0.3 - 2 = -1±0.3', ()->
-          assert val(-1, 0.3).value.weak_eq mod.eval op.sub val(1, 0.3), val(2)
-        
-        it '1±0.3 - 2±0.4 = -1±0.7', ()->
-          assert val(-1, 0.7).value.weak_eq mod.eval op.sub val(1, 0.3), val(2, 0.4)
-        
-        it '1[-0.1+0.2] - 2[-0.3+0.5] = -1[-0.6+0.5]', ()->
-          assert val(-1, 0.6, 0.5).value.weak_eq mod.eval op.sub val(1, 0.1, 0.2), val(2, 0.3, 0.5)
+      it '1 - 2 = -1', ()->
+        assert val(-1).value.weak_eq mod.eval op.sub val(1), val(2)
+        return
       
-        
+      it '1±0.3 - 2 = -1±0.3', ()->
+        assert val(-1, 0.3).value.weak_eq mod.eval op.sub val(1, 0.3), val(2)
+      
+      it '1±0.3 - 2±0.4 = -1±0.7', ()->
+        assert val(-1, 0.7).value.weak_eq mod.eval op.sub val(1, 0.3), val(2, 0.4)
+      
+      it '1[-0.1+0.2] - 2[-0.3+0.5] = -1[-0.6+0.5]', ()->
+        assert val(-1, 0.6, 0.5).value.weak_eq mod.eval op.sub val(1, 0.1, 0.2), val(2, 0.3, 0.5)
       
       it 'TODO multiband'
   #   
@@ -247,7 +268,13 @@ describe 'operation_value_evaluator section', ()->
       
       it '0±1 * 0±1 = 0±1', ()->
         commutative_test val(0, 1), val(0, 1), val(0, 1)
-        
+      
+      it '-Infinity[-Infinity,-Infinity] * Infinity[+Infinity,+Infinity] = -Infinity[-Infinity,-Infinity]', ()->
+        commutative_test aval(-Infinity, -Infinity, -Infinity), aval(Infinity, Infinity, Infinity), aval(-Infinity, -Infinity, -Infinity)
+      
+      it '-Infinity[-Infinity,-Infinity] * Infinity[-Infinity,+Infinity] = -Infinity[-Infinity,Infinity]', ()->
+        commutative_test aval(-Infinity, -Infinity, -Infinity), aval(Infinity, -Infinity, Infinity), aval(-Infinity, -Infinity, Infinity)
+      
       it 'TODO Infinity'
       it 'TODO -Infinity'
       it 'TODO inc, excl ranges (aka zeroband)'
